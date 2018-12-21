@@ -2,6 +2,8 @@
 
 namespace apps\websocketd\controllers;
 
+use apps\common\facades\PDO;
+use apps\index\helpers\Utils;
 use mix\facades\Redis;
 use mix\websocket\Controller;
 use apps\websocketd\models\MessageForm;
@@ -28,5 +30,11 @@ class MessageController extends Controller
         // 通过消息队列给指定用户id发消息
         Redis::publish('emit_to_' . $model->to_uid, $model->message);
     }
+
+    public function actionAddMessage($data, $userinfo){
+        $success = PDO::insert('message', $data)->execute();
+    }
+
+
 
 }

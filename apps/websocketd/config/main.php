@@ -144,6 +144,8 @@ return [
 
                 'joinRoom'    => ['Join', 'Room'],
                 'messageEmit' => ['Message', 'Emit'],
+                'messageAdd' => ['Message', 'AddMessage'],
+//                'getSingleChatRecord' => ['Message', 'GetSingleChatRecord'],
 
             ],
         ],

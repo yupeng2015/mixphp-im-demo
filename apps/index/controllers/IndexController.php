@@ -2,6 +2,8 @@
 
 namespace apps\index\controllers;
 
+use apps\common\facades\Redis;
+use mix\facades\Token;
 use mix\http\Controller;
 
 /**
@@ -14,7 +16,8 @@ class IndexController extends Controller
     // 默认动作
     public function actionIndex()
     {
-        return 'Hello, World!12';
+        //Token::set("a","a");
+        app()->dump(Token::get('a'),true);
     }
 
 }

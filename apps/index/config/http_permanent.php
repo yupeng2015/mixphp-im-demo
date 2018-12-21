@@ -10,7 +10,7 @@ return [
     'controllerNamespace' => 'apps\index\controllers',
 
     // 中间件命名空间
-    'middlewareNamespace' => 'apps\httpd\middleware',
+    'middlewareNamespace' => 'apps\index\middleware',
 
     // 全局中间件
     'middleware'          => [],
@@ -30,6 +30,9 @@ return [
             ],
             // 路由规则
             'rules'          => [
+                'public/index' => ['Public', 'Index'],
+                // 一级路由中URL /profile/userinfo 不使用中间件
+                'public/post-login' => ['Public', 'PostLogin'],
                 // 一级路由
                 ':controller/:action' => [':controller', ':action', 'middleware' => ['Before']],
             ],
@@ -48,7 +51,7 @@ return [
             // 类路径
             'class'         => 'mix\http\Response',
             // 默认输出格式
-            'defaultFormat' => mix\http\Response::FORMAT_HTML,
+            'defaultFormat' => mix\http\Response::FORMAT_JSON,
             // json
             'json'          => [
                 // 类路径
@@ -112,7 +115,7 @@ return [
             // 有效期
             'expiresIn'     => 604800,
             // token键名
-            'name'          => 'access_token',
+            'name'          => 'access-token',
         ],
 
         // Session

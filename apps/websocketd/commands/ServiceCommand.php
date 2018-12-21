@@ -2,6 +2,7 @@
 
 namespace apps\websocketd\commands;
 
+use apps\common\facades\Redis;
 use mix\console\Command;
 use mix\console\ExitCode;
 use mix\facades\Error;
@@ -108,34 +109,37 @@ class ServiceCommand extends Command
     public function onOpen(\Swoole\WebSocket\Server $webSocket, $fd, \mix\http\Request $request)
     {
         // 效验session
-        $userinfo = app('websocket')->sessionReader->loadSessionId($request)->get('userinfo');
-        app('websocket')->sessionReader->close();
-        if (empty($userinfo)) {
-            // 鉴权失败处理
-            $webSocket->close($fd);
-            return;
-        }
+//        $userinfo = app('websocket')->sessionReader->loadSessionId($request)->get('userinfo');
+//        app('websocket')->sessionReader->close();
+//        if (empty($userinfo)) {
+//            // 鉴权失败处理
+//            $webSocket->close($fd);
+//            return;
+//        }
 
         /*
          * token 方案，与上面的 session 方案，二选一使用即可
-
+        */
         // 效验token
         $userinfo = app('websocket')->tokenReader->loadTokenId($request)->get('userinfo');
         app('websocket')->tokenReader->close();
         if (empty($userinfo)) {
             // 鉴权失败处理
+            $webSocket->push($fd,'验证失败');
             $webSocket->close($fd);
             return;
         }
 
-        */
+
 
         // 保存会话信息
         $webSocket->fds[$fd]['session'] = [
-            'uid'  => $userinfo['uid'],
-            'name' => $userinfo['name'],
+            'id'  => $userinfo['id'],
+            'name' => $userinfo['account'],
         ];
-
+        //关联fd和me_id 保存到redis
+        $redis_user_data = $userinfo+['fd'=>$fd];
+        Redis::set($userinfo['id'],json_encode($redis_user_data));
         // 异步订阅
         $redis = \mix\client\RedisAsync::newInstanceByConfig('libraries.[async.redis]');
         $redis->on('Message', function (\Swoole\Redis $client, $result) use ($webSocket, $fd) {
@@ -168,7 +172,7 @@ class ServiceCommand extends Command
                     throw new \Exception($message);
                 }
                 // 订阅该用户id的消息队列
-                $channels[] = 'emit_to_' . $userinfo['uid'];
+                $channels[] = 'emit_to_' . $userinfo['id'];
                 call_user_func_array([$client, 'subscribe'], $channels);
             } catch (\Throwable $e) {
                 // 处理异常
@@ -194,6 +198,21 @@ class ServiceCommand extends Command
         if (!isset($data['event']) || !isset($data['params'])) {
             return;
         }
+        //反馈给ws客户端
+        $message_user = json_decode(Redis::get($data['params']['receive_user_id']),1);
+        $webSocket->push($frame->fd,$frame->data);
+        $receive_user_id_fd = $message_user['fd'];
+        if($data['params']['im_type'] == 'single'){
+            $webSocket->push($receive_user_id_fd,$frame->data);
+            //$webSocket->push($frame->fd,$frame->data);
+        }
+
+        //foreach ($webSocket->connections as $fd){
+            //$webSocket->push($fd,$frame->data);
+//            $webSocket->push($frame->fd,json_encode($webSocket->fds,JSON_UNESCAPED_UNICODE));
+        //}
+
+
         $event = $data['event'];
         // 执行功能
         app('websocket')->messageHandler
