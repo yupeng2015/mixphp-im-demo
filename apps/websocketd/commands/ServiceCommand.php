@@ -138,7 +138,7 @@ class ServiceCommand extends Command
             'name' => $userinfo['account'],
         ];
         //关联fd和me_id 保存到redis
-        $redis_user_data = $userinfo+['fd'=>$fd];
+        $redis_user_data = $userinfo+['fd'=>$fd,'online'=>'ON'];
         Redis::set($userinfo['id'],json_encode($redis_user_data));
         // 异步订阅
         $redis = \mix\client\RedisAsync::newInstanceByConfig('libraries.[async.redis]');
@@ -150,6 +150,7 @@ class ServiceCommand extends Command
                     throw new \Exception($message);
                 }
                 // 将消息队列的消息发送至客户端
+                var_dump($result);
                 list($type, , $message) = $result;
                 if ($type == 'message') {
                     $webSocket->push($fd, $message);
@@ -199,19 +200,16 @@ class ServiceCommand extends Command
             return;
         }
         //反馈给ws客户端
-        $message_user = json_decode(Redis::get($data['params']['receive_user_id']),1);
-        $webSocket->push($frame->fd,$frame->data);
-        $receive_user_id_fd = $message_user['fd'];
-        if($data['params']['im_type'] == 'single'){
-            $webSocket->push($receive_user_id_fd,$frame->data);
-            //$webSocket->push($frame->fd,$frame->data);
-        }
-
-        //foreach ($webSocket->connections as $fd){
-            //$webSocket->push($fd,$frame->data);
-//            $webSocket->push($frame->fd,json_encode($webSocket->fds,JSON_UNESCAPED_UNICODE));
-        //}
-
+//        $redis_user_data = Redis::get($data['params']['receive_user_id']);
+//        $message_user = json_decode($redis_user_data,1);
+//        if($message_user['online'] =='ON' && isset($message_user['fd']) && isset($webSocket->connection_list()[$message_user['fd']])){
+//            //$webSocket->push($frame->fd,$frame->data);
+//            $receive_user_id_fd = $message_user['fd'];
+//            if($data['params']['im_type'] == 'single'){
+//                $webSocket->push($receive_user_id_fd,$frame->data);
+//                //$webSocket->push($frame->fd,$frame->data);
+//            }
+//        }
 
         $event = $data['event'];
         // 执行功能
@@ -224,6 +222,8 @@ class ServiceCommand extends Command
     // 关闭连接事件回调函数
     public function onClose(\Swoole\WebSocket\Server $webSocket, $fd)
     {
+        $redis_user_data = ['online'=>'OFF'];
+        Redis::set($webSocket->fds[$fd]['session']['id'],json_encode($redis_user_data));
         // 删除会话信息
         if (isset($webSocket->fds[$fd]['session'])) {
             unset($webSocket->fds[$fd]['session']);

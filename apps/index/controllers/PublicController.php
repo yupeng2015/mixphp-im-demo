@@ -73,8 +73,8 @@ class PublicController extends BaseController{
         ]);
     }
 
-    public function actionGetUserInfo(){
-
+    public function actionCheckToken(){
+        return Utils::returnFormat(1,'token passed');
     }
 
     public function actionGetUserList(){

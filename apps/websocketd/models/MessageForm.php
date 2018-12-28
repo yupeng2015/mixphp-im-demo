@@ -11,15 +11,15 @@ use mix\validators\Validator;
 class MessageForm extends Validator
 {
 
-    public $to_uid;
-    public $message;
+    public $receive_user_id;
+    public $content;
 
     // 规则
     public function rules()
     {
         return [
-            'to_uid'  => ['integer', 'unsigned' => true, 'minLength' => 1, 'maxLength' => 10],
-            'message' => ['string', 'minLength' => 1, 'maxLength' => 300],
+            'receive_user_id'  => ['integer', 'unsigned' => true, 'minLength' => 1, 'maxLength' => 10],
+            'content' => ['string', 'minLength' => 1, 'maxLength' => 300],
         ];
     }
 
@@ -27,7 +27,7 @@ class MessageForm extends Validator
     public function scenarios()
     {
         return [
-            'actionEmit' => ['required' => ['to_uid', 'message']],
+            'actionEmit' => ['required' => ['receive_user_id', 'content']],
         ];
     }
 
