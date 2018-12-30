@@ -26,9 +26,10 @@ class MessageController extends Controller
         if (!$model->validate()) {
             return;
         }
-        $data = json_encode($data,JSON_UNESCAPED_UNICODE);
+        $dataJson = json_encode($data,JSON_UNESCAPED_UNICODE);
         // 通过消息队列给指定用户id发消息
-        Redis::publish('emit_to_' . $model->receive_user_id, $data);
+        Redis::publish('emit_to_' . $model->receive_user_id, $dataJson);
+        $success = PDO::insert('message', $data)->execute();
     }
 
     public function actionAddMessage($data, $userinfo){

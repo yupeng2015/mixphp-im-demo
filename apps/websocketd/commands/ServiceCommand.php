@@ -223,7 +223,10 @@ class ServiceCommand extends Command
     public function onClose(\Swoole\WebSocket\Server $webSocket, $fd)
     {
         $redis_user_data = ['online'=>'OFF'];
-        Redis::set($webSocket->fds[$fd]['session']['id'],json_encode($redis_user_data));
+        if(isset($webSocket->connection_list()[$fd])){
+            Redis::set($webSocket->fds[$fd]['session']['id'],json_encode($redis_user_data));
+        }
+
         // 删除会话信息
         if (isset($webSocket->fds[$fd]['session'])) {
             unset($webSocket->fds[$fd]['session']);
