@@ -32,7 +32,8 @@ return [
             'rules'          => [
                 'public/index' => ['Public', 'Index'],
                 // 一级路由中URL /profile/userinfo 不使用中间件
-                'public/post-login' => ['Public', 'PostLogin'],
+                'public/post-login' => ['Public', 'PostLogin','middleware'=>['Public']],
+                'public/post-register' => ['Public', 'PostRegister','middleware'=>['Public']],
                 // 一级路由
                 ':controller/:action' => [':controller', ':action', 'middleware' => ['Before']],
             ],

@@ -30,7 +30,7 @@ class PublicController extends BaseController{
         $success = PDO::insert('users', $userInsertData)->execute();
 // 获得刚插入数据的id
         $insertId = PDO::getLastInsertId();
-        return ['errcode' => 0, 'errmsg' => 'ok','res'=>['lastId'=>$insertId]];
+        return ['code' => 1, 'msg' => 'ok','res'=>['lastId'=>$insertId]];
     }
 
     public function actionPostLogin(){
